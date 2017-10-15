@@ -61,10 +61,7 @@ var toDOM = html => new DOMParser().parseFromString(html, 'text/html').body.chil
 var createElement = extension => {
     var Element = function(node) {
         Observer.call(this, extension);
-        if (typeof node === 'string')
-            this.node = toDOM(node)[0];
-        else if (node)
-            this.node = node;
+        this.node = typeof node === 'string' ? toDOM(node)[0] : node;
         Element.initialHandlers.forEach(item => this.on(item.event, item.handler));
     };
 
