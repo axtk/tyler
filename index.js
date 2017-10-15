@@ -47,9 +47,6 @@ Object.assign(Observer.prototype, {
         dispatcher.fire(event, Object.assign({ source: this }, options));
         return this;
     },
-    fires(event, options) { // a handy shortcut for DOM event handlers
-        return () => this.fire(event, options);
-    },
     on(event, handler) {
         dispatcher.on(event, handler, this);
         return this;
