@@ -19,8 +19,8 @@ var Pane = tyler.createElement({
             .addEventListener('click', () => this.fire('button clicked'));
         // all subscriptions of this instance to the 'ready' event can now be removed
         this.off('ready');
-        // if it were necessary to unsubscribe a specific event handler,
-        // the handler could be passed as a second argument
+        // if it were necessary to unsubscribe a specific event handler from the component,
+        // the handler could be passed as the second argument
     },
     render(message) {
         this.node.querySelector('.status').textContent = message;
@@ -62,7 +62,14 @@ new tyler.Service({
 // all events are managed by the `tyler.dispatcher` object created behind the scenes;
 // here it fires the initial event
 tyler.dispatcher.fire('ready');
+```
+
+```js
 // optionally, an event interception callback can be setup on the dispatcher,
 // which can be helpful for event logging
-// tyler.dispatcher.intercept(console.log).fire('ready');
+tyler.dispatcher.intercept(console.log).fire('ready');
+// when invoked, the garbage collector removes event handlers associated with
+// components detached from the layout;
+// this can be helpful when there are a lot of event handlers and layout rearrangements
+tyler.dispatcher.gc();
 ```

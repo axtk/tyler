@@ -13,17 +13,20 @@ var dispatcher = {
     on(event, handler, context) {
         if (event instanceof Array)
             return event.forEach(item => this.on(item, handler, context)) || this;
-        window.addEventListener(EVENT_NAMESPACE + event, this.registerHandler(event, handler, context));
+        window.addEventListener(
+            EVENT_NAMESPACE + event,
+            this.registerHandler(event, handler, context || this)
+        );
         return this;
     },
     off(event, handler, context) {
-        this.discardHandlers(event, handler, context).forEach(discardedHandler => {
+        this.discardHandlers(event, handler, context || this).forEach(discardedHandler => {
             window.removeEventListener(EVENT_NAMESPACE + event, discardedHandler);
         });
         return this;
     },
     registerHandler(event, handler, context) {
-        var modified = e => handler.call(context || this, event, e.detail);
+        var modified = e => handler.call(context, event, e.detail);
         this.handlers.push({ event, original: handler, modified, context });
         return modified;
     },
@@ -42,6 +45,14 @@ var dispatcher = {
     intercept(callback) {
         this.interceptionCallback = callback;
         return this;
+    },
+    // garbage collector
+    // removes registered event handlers associated with detached DOM nodes
+    gc() {
+        for (let i = dispatcher.handlers.length - 1; i >= 0; i--) {
+            let node = dispatcher.handlers[i].context.node;
+            if (node && node.parentNode === null) dispatcher.handlers.splice(i, 1);
+        }
     },
     handlers: []
 };
