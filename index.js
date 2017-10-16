@@ -3,7 +3,6 @@
 if (window.tyler) return;
 
 const EVENT_NAMESPACE = 'tyler/';
-const EVENT_SOURCE_SELF_REFERENCE = './';
 
 var dispatcher = {
     fire(event, options) {
@@ -11,31 +10,40 @@ var dispatcher = {
         window.dispatchEvent(new CustomEvent(EVENT_NAMESPACE + event, { detail: options }));
         return this;
     },
-    off(event, handler) {
-        window.removeEventListener(EVENT_NAMESPACE + event, handler);
-        return this;
-    },
     on(event, handler, context) {
         if (event instanceof Array)
             return event.forEach(item => this.on(item, handler, context)) || this;
-
-        if (event.indexOf(EVENT_SOURCE_SELF_REFERENCE) === 0) {
-            let originalHandler = handler;
-            event = event.substring(EVENT_SOURCE_SELF_REFERENCE.length);
-            handler = function(e, options) {
-                if (options && options.source === context) originalHandler.call(context, e, options);
-            };
-        }
-        else if (context)
-            handler = handler.bind(context);
-
-        window.addEventListener(EVENT_NAMESPACE + event, e => handler(e, e.detail), false);
+        window.addEventListener(EVENT_NAMESPACE + event, this.registerHandler(event, handler, context));
         return this;
+    },
+    off(event, handler, context) {
+        this.discardHandlers(event, handler, context).forEach(discardedHandler => {
+            window.removeEventListener(EVENT_NAMESPACE + event, discardedHandler);
+        });
+        return this;
+    },
+    registerHandler(event, handler, context) {
+        var modified = e => handler.call(context || this, event, e.detail);
+        this.handlers.push({ event, original: handler, modified, context });
+        return modified;
+    },
+    discardHandlers(event, handler, context) {
+        var discardedHandlers = [], matches;
+        for (let i = this.handlers.length - 1; i >= 0; i--) {
+            matches = (
+                this.handlers[i].event === event &&
+                (!handler || this.handlers[i].original === handler) &&
+                (!context || this.handlers[i].context === context)
+            );
+            if (matches) discardedHandlers.push(this.handlers.splice(i, 1)[0].modified);
+        }
+        return discardedHandlers;
     },
     intercept(callback) {
         this.interceptionCallback = callback;
         return this;
-    }
+    },
+    handlers: []
 };
 
 var Observer = function(extension) {
@@ -49,6 +57,10 @@ Object.assign(Observer.prototype, {
     },
     on(event, handler) {
         dispatcher.on(event, handler, this);
+        return this;
+    },
+    off(event, handler) {
+        dispatcher.off(event, handler, this);
         return this;
     }
 });

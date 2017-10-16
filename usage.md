@@ -1,10 +1,12 @@
-## Usage
+# Usage
 
 Tyler provides two types of components: *Elements* and *Services*. Elements represent visual blocks of a user interface, the purpose of Services is to store and process data.
 
 (In terms of the MV* design patterns, such as [MVVM](https://en.wikipedia.org/wiki/Model_View_ViewModel) and [MVC](https://en.wikipedia.org/wiki/Model%E2%80%93view%E2%80%93controller), Elements can be regarded as views and view models, while Services as controllers and models. Still, Tyler doesn't require to stick to these design patterns and roles.)
 
-The following example highlights the features of this little framework and the idea behind it.
+The following example highlights the concepts and features of this little framework, and the idea behind it.
+
+## Element
 
 ```js
 // the Pane is a constructor of a new Element;
@@ -13,8 +15,12 @@ var Pane = tyler.createElement({
     initialize() {
         // the instance's `.node` property refers to the DOM node it was created for
         this.node.querySelector('button')
-            // every button click will cause a 'button clicked' event
+            // every button click will cause a custom 'button clicked' event
             .addEventListener('click', () => this.fire('button clicked'));
+        // all subscriptions of this instance to the 'ready' event can now be removed
+        this.off('ready');
+        // if it were necessary to unsubscribe a specific event handler,
+        // the handler could be passed as a second argument
     },
     render(message) {
         this.node.querySelector('.status').textContent = message;
@@ -25,11 +31,6 @@ var Pane = tyler.createElement({
 .on('ready', function() {
     this.initialize();
 })
-// since there might be other 'button click' event sources, in order to handle
-// only the events coming from itself, a prefix can be added to the event name
-.on('./button clicked', function() {
-    this.render('clicked');
-})
 .on('data loaded', function(event, options) {
     this.render(options.message);
 });
@@ -39,9 +40,10 @@ var Pane = tyler.createElement({
 new Pane(document.querySelector('#pane'));
 ```
 
-Here is another component, a Service. It knows nothing about the previous component, nor does it attempt to refer to it. So, removing one of them wouldn't break the other. And still they interact with each other by sending and receiving events.
+## Service
 
 ```js
+// this is a utility component
 new tyler.Service({
     load() {
         return fetch('/latest').then(response => response.json());
@@ -50,11 +52,15 @@ new tyler.Service({
 .on('ready', function() {
     this.load().then(data => this.fire('data loaded', data));
 });
+// it maintains an interaction with the previous component by sending and receiving events,
+// without directly referring to another component, thus maintaining a great deal of independence
 ```
 
-All events are managed by the `tyler.dispatcher` object created behind the scenes. Here it will fire the initial event.
+## Dispatcher
 
 ```js
+// all events are managed by the `tyler.dispatcher` object created behind the scenes;
+// here it fires the initial event
 tyler.dispatcher.fire('ready');
 // optionally, an event interception callback can be setup on the dispatcher,
 // which can be helpful for event logging
