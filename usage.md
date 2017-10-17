@@ -43,7 +43,7 @@ new Pane(document.querySelector('#pane'));
 ## Service
 
 ```js
-// this is a utility component
+// data processing will reside on the utility component
 new tyler.Service({
     load() {
         return fetch('/latest').then(response => response.json());
@@ -68,6 +68,9 @@ tyler.dispatcher.fire('ready');
 // optionally, an event interception callback can be setup on the dispatcher,
 // which can be helpful for event logging
 tyler.dispatcher.intercept(console.log).fire('ready');
+```
+
+```js
 // when invoked, the garbage collector removes event handlers associated with
 // components detached from the layout;
 // this can be helpful when there are a lot of event handlers and layout rearrangements

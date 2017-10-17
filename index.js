@@ -49,9 +49,9 @@ var dispatcher = {
     // garbage collector
     // removes registered event handlers associated with detached DOM nodes
     gc() {
-        for (let i = dispatcher.handlers.length - 1; i >= 0; i--) {
-            let node = dispatcher.handlers[i].context.node;
-            if (node && node.parentNode === null) dispatcher.handlers.splice(i, 1);
+        for (let i = this.handlers.length - 1; i >= 0; i--) {
+            let node = this.handlers[i].context.node;
+            if (node && node.parentNode === null) this.handlers.splice(i, 1);
         }
     },
     handlers: []
