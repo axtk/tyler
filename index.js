@@ -7,40 +7,27 @@ const EVENT_NAMESPACE = 'tyler/';
 var dispatcher = {
     fire(event, options) {
         if (this.interceptionCallback) this.interceptionCallback(event, options);
-        window.dispatchEvent(new CustomEvent(EVENT_NAMESPACE + event, { detail: options }));
+        this.listeners.forEach(listener => {
+            if (listener.event === event) listener.handler.call(listener.context, event, options);
+        });
         return this;
     },
     on(event, handler, context) {
         if (event instanceof Array)
-            return event.forEach(item => this.on(item, handler, context)) || this;
-        window.addEventListener(
-            EVENT_NAMESPACE + event,
-            this.registerHandler(event, handler, context || this)
-        );
+            event.forEach(item => this.on(item, handler, context));
+        else this.listeners.push({ event, handler, context });
         return this;
     },
     off(event, handler, context) {
-        this.discardHandlers(event, handler, context || this).forEach(discardedHandler => {
-            window.removeEventListener(EVENT_NAMESPACE + event, discardedHandler);
-        });
-        return this;
-    },
-    registerHandler(event, handler, context) {
-        var modified = e => handler.call(context, event, e.detail);
-        this.handlers.push({ event, original: handler, modified, context });
-        return modified;
-    },
-    discardHandlers(event, handler, context) {
-        var discardedHandlers = [], matches;
-        for (let i = this.handlers.length - 1; i >= 0; i--) {
-            matches = (
-                this.handlers[i].event === event &&
-                (!handler || this.handlers[i].original === handler) &&
-                (!context || this.handlers[i].context === context)
+        for (var i = this.listeners.length - 1; i >= 0; i--) {
+            let matches = (
+                this.listeners[i].event === event &&
+                (!handler || this.listeners[i].handler === handler) &&
+                (!context || this.listeners[i].context === context)
             );
-            if (matches) discardedHandlers.push(this.handlers.splice(i, 1)[0].modified);
+            if (matches) this.listeners.splice(i, 1);
         }
-        return discardedHandlers;
+        return this;
     },
     intercept(callback) {
         this.interceptionCallback = callback;
@@ -49,12 +36,13 @@ var dispatcher = {
     // garbage collector
     // removes registered event handlers associated with detached DOM nodes
     gc() {
-        for (let i = this.handlers.length - 1; i >= 0; i--) {
-            let node = this.handlers[i].context.node;
-            if (node && node.parentNode === null) this.handlers.splice(i, 1);
+        for (var i = this.listeners.length - 1; i >= 0; i--) {
+            let context = this.listeners[i].context;
+            if (context && context.node && context.node.parentNode === null)
+                this.listeners.splice(i, 1);
         }
     },
-    handlers: []
+    listeners: []
 };
 
 var Observer = function(extension) {
