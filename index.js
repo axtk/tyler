@@ -51,7 +51,7 @@ var Observer = function(extension) {
 
 Object.assign(Observer.prototype, {
     fire(event, options) {
-        dispatcher.fire(event, Object.assign({ source: this }, options));
+        dispatcher.fire(event, options);
         return this;
     },
     on(event, handler) {
