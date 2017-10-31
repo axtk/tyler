@@ -9,7 +9,7 @@ The following example highlights the concepts and features of this little framew
 ## Element
 
 ```js
-// the Pane is a constructor of a new Element;
+// the Pane is a constructor of a new Tyler Element;
 // all its instances will have the custom methods defined here
 var Pane = tyler.createElement({
     initialize() {
@@ -35,7 +35,7 @@ var Pane = tyler.createElement({
     this.render(options.message);
 });
 
-// an instance of an Element requires a DOM node, or a portion of HTML markup
+// an instance of a Tyler Element requires a DOM node, or a portion of HTML markup
 // which will be converted to a DOM node under the hood
 new Pane(document.querySelector('#pane'));
 ```
