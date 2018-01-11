@@ -1,9 +1,5 @@
 ;(function() {
 
-if (window.tyler) return;
-
-const EVENT_NAMESPACE = 'tyler/';
-
 var dispatcher = {
     fire(event, options) {
         if (this.interceptionCallback) this.interceptionCallback(event, options);
