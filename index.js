@@ -1,6 +1,6 @@
-;(function() {
+{
 
-var dispatcher = {
+let dispatcher = {
     fire(event, options) {
         if (this.interceptionCallback) this.interceptionCallback(event, options);
         this.listeners.forEach(listener => {
@@ -15,7 +15,7 @@ var dispatcher = {
         return this;
     },
     off(event, handler, context) {
-        for (var i = this.listeners.length - 1; i >= 0; i--) {
+        for (let i = this.listeners.length - 1; i >= 0; i--) {
             let matches = (
                 this.listeners[i].event === event &&
                 (!handler || this.listeners[i].handler === handler) &&
@@ -32,7 +32,7 @@ var dispatcher = {
     // garbage collector
     // removes registered event handlers associated with detached DOM nodes
     gc() {
-        for (var i = this.listeners.length - 1; i >= 0; i--) {
+        for (let i = this.listeners.length - 1; i >= 0; i--) {
             let context = this.listeners[i].context;
             if (context && context.node && context.node.parentNode === null)
                 this.listeners.splice(i, 1);
@@ -41,7 +41,7 @@ var dispatcher = {
     listeners: []
 };
 
-var Observer = function(extension) {
+let Observer = function(extension) {
     Object.assign(this, extension || {});
 };
 
@@ -60,10 +60,10 @@ Object.assign(Observer.prototype, {
     }
 });
 
-var toDOM = html => new DOMParser().parseFromString(html, 'text/html').body.childNodes;
+let toDOM = html => new DOMParser().parseFromString(html, 'text/html').body.childNodes;
 
-var createElement = extension => {
-    var Element = function(node) {
+let createElement = extension => {
+    let Element = function(node) {
         Observer.call(this, extension);
         this.node = typeof node === 'string' ? toDOM(node)[0] : node;
         Element.initialHandlers.forEach(item => this.on(item.event, item.handler));
@@ -82,4 +82,4 @@ var createElement = extension => {
 
 window.tyler = { Observer, Service: Observer, createElement, dispatcher, toDOM };
 
-})();
+}
