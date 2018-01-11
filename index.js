@@ -34,7 +34,7 @@ let dispatcher = {
     gc() {
         for (let i = this.listeners.length - 1; i >= 0; i--) {
             let context = this.listeners[i].context;
-            if (context && context.node && context.node.parentNode === null)
+            if (context && context.node && !context.node.ownerDocument.body.contains(context.node))
                 this.listeners.splice(i, 1);
         }
     },
